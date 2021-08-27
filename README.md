@@ -7,7 +7,7 @@ It is good when you switch to specific app always with right layout.
 You need [Hammerspoon](http://www.hammerspoon.org/) installed.
 
 ```bash
-brew cask install hammerspoon
+brew install hammerspoon
 ```
 
 Clone spoon
