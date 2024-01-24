@@ -1,4 +1,4 @@
-local obj={}
+local obj = {}
 obj.__index = obj
 
 -- Metadata
@@ -12,20 +12,30 @@ function obj:init()
     self.preferedLayouts = {}
     self.beforeLayout = hs.keycodes.currentLayout()
     self.restoreLastLayout = false
+    self.lastNotForcedApp = ""
 
     self.appWatcher = hs.application.watcher.new(
-        function (appName, eventType, appObject)
+        function(appName, eventType, _)
             if (eventType == hs.application.watcher.activated) then
                 if (self.preferedLayouts[appName]) then
-                    self.beforeLayout = hs.keycodes.currentLayout()
+                    if (not self.restoreLastLayout) then
+                        self.beforeLayout = hs.keycodes.currentLayout()
+                        self.restoreLastLayout = true
+                    end
                     hs.keycodes.setLayout(self.preferedLayouts[appName])
+                elseif (self.lastNotForcedApp == appName) then
+                    hs.keycodes.setLayout(self.beforeLayout)
+                    self.lastNotForcedApp = ""
+                    self.restoreLastLayout = false
+                else
+                    self.lastNotForcedApp = ""
                     self.restoreLastLayout = false
                 end
             end
 
             if (eventType == hs.application.watcher.deactivated) then
-                if (self.preferedLayouts[appName] and self.restoreLastLayout) then
-                    hs.keycodes.setLayout(self.beforeLayout)
+                if (not self.preferedLayouts[appName] and self.restoreLastLayout) then
+                    self.lastNotForcedApp = appName
                 end
             end
         end
@@ -59,6 +69,7 @@ function obj:stop()
     self.preferedLayouts = {}
     self.beforeLayout = hs.keycodes.currentLayout()
     self.restoreLastLayout = false
+    self.lastNotForcedApp = ""
 end
 
 return obj
